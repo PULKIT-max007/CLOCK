@@ -1,0 +1,224 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>One Piece Clock Web App</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background: linear-gradient(120deg, #001f3f, #0074D9);
+      color: #fff;
+      margin: 0;
+      text-align: center;
+    }
+    header { padding: 20px; background: rgba(0,0,0,0.5); }
+    h1 { margin: 10px 0; font-size: 2.5em; color: gold; }
+    .subtitle { font-style: italic; color: #ffcc00; }
+    nav { margin: 20px; }
+    .tab {
+      padding: 10px 20px; margin: 5px; border: none;
+      background: #ff4136; color: white; cursor: pointer; border-radius: 5px;
+    }
+    .tab.active { background: #2ecc40; }
+    .tab-content { display: none; margin-top: 20px; }
+    .tab-content.active { display: block; }
+    .clock-display {
+      font-size: 2em; margin: 20px; padding: 20px;
+      border: 3px solid gold; border-radius: 10px;
+      background: rgba(0,0,0,0.6); box-shadow: 0 0 15px gold;
+    }
+    .controls button {
+      margin: 5px; padding: 10px 15px; border: none;
+      background: #0074D9; color: white; border-radius: 5px; cursor: pointer;
+    }
+    footer { margin-top: 30px; padding: 10px; background: rgba(0,0,0,0.5); }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>One Piece Clock Web App</h1>
+    <p class="subtitle">Set sail with time!</p>
+  </header>
+
+  <nav>
+    <button class="tab active" data-tab="digital">Digital Clock</button>
+    <button class="tab" data-tab="stopwatch">Stopwatch</button>
+    <button class="tab" data-tab="timer">Timer</button>
+    <button class="tab" data-tab="alarm">Alarm</button>
+    <button class="tab" data-tab="world">World Clock</button>
+  </nav>
+
+  <main>
+    <!-- Digital Clock -->
+    <section id="digital" class="tab-content active">
+      <h2>Digital Clock</h2>
+      <div id="digital-clock" class="clock-display"></div>
+      <div id="digital-date"></div>
+    </section>
+
+    <!-- Stopwatch -->
+    <section id="stopwatch" class="tab-content">
+      <h2>Stopwatch</h2>
+      <div id="stopwatch-display" class="clock-display">00:00:00.000</div>
+      <div class="controls">
+        <button id="sw-start">Start</button>
+        <button id="sw-stop">Stop</button>
+        <button id="sw-reset">Reset</button>
+        <button id="sw-lap">Lap</button>
+      </div>
+      <ul id="sw-laps"></ul>
+    </section>
+
+    <!-- Timer -->
+    <section id="timer" class="tab-content">
+      <h2>Timer</h2>
+      <input type="number" id="timer-hours" placeholder="HH" min="0" max="23">
+      <input type="number" id="timer-minutes" placeholder="MM" min="0" max="59">
+      <input type="number" id="timer-seconds" placeholder="SS" min="0" max="59">
+      <div id="timer-display" class="clock-display">00:00:00</div>
+      <div class="controls">
+        <button id="timer-start">Start</button>
+        <button id="timer-pause">Pause</button>
+        <button id="timer-reset">Reset</button>
+      </div>
+    </section>
+
+    <!-- Alarm -->
+    <section id="alarm" class="tab-content">
+      <h2>Alarm</h2>
+      <input type="time" id="alarm-time">
+      <button id="alarm-set">Set Alarm</button>
+      <button id="alarm-clear">Clear Alarm</button>
+      <div id="alarm-status"></div>
+    </section>
+
+    <!-- World Clock -->
+    <section id="world" class="tab-content">
+      <h2>World Clock</h2>
+      <select id="world-city">
+        <option value="Asia/Kolkata">India (Kolkata)</option>
+        <option value="Asia/Tokyo">Japan (Tokyo)</option>
+        <option value="Europe/London">UK (London)</option>
+        <option value="America/New_York">USA (New York)</option>
+        <option value="Australia/Sydney">Australia (Sydney)</option>
+        <option value="Europe/Paris">France (Paris)</option>
+      </select>
+      <div id="world-clock" class="clock-display"></div>
+      <div id="world-date"></div>
+    </section>
+  </main>
+
+  <footer>
+    <p>Inspired by <strong>One Piece</strong> | Made for Class 11 Practical File</p>
+  </footer>
+
+  <script>
+    // Tab switching
+    const tabs = document.querySelectorAll(".tab");
+    const contents = document.querySelectorAll(".tab-content");
+    tabs.forEach(tab => {
+      tab.addEventListener("click", () => {
+        tabs.forEach(t => t.classList.remove("active"));
+        contents.forEach(c => c.classList.remove("active"));
+        tab.classList.add("active");
+        document.getElementById(tab.dataset.tab).classList.add("active");
+      });
+    });
+
+    // Digital Clock
+    function updateDigitalClock() {
+      const now = new Date();
+      document.getElementById("digital-clock").textContent = now.toLocaleTimeString();
+      document.getElementById("digital-date").textContent = now.toDateString();
+    }
+    setInterval(updateDigitalClock, 1000);
+    updateDigitalClock();
+
+    // Stopwatch
+    let swInterval, swStartTime, swElapsed = 0;
+    const swDisplay = document.getElementById("stopwatch-display");
+    document.getElementById("sw-start").onclick = () => {
+      swStartTime = Date.now() - swElapsed;
+      swInterval = setInterval(() => {
+        swElapsed = Date.now() - swStartTime;
+        swDisplay.textContent = new Date(swElapsed).toISOString().substr(11, 12);
+      }, 10);
+    };
+    document.getElementById("sw-stop").onclick = () => clearInterval(swInterval);
+    document.getElementById("sw-reset").onclick = () => {
+      clearInterval(swInterval);
+      swElapsed = 0;
+      swDisplay.textContent = "00:00:00.000";
+      document.getElementById("sw-laps").innerHTML = "";
+    };
+    document.getElementById("sw-lap").onclick = () => {
+      const li = document.createElement("li");
+      li.textContent = swDisplay.textContent;
+      document.getElementById("sw-laps").appendChild(li);
+    };
+
+    // Timer
+    let timerInterval, timerRemaining;
+    const timerDisplay = document.getElementById("timer-display");
+    document.getElementById("timer-start").onclick = () => {
+      const h = +document.getElementById("timer-hours").value || 0;
+      const m = +document.getElementById("timer-minutes").value || 0;
+      const s = +document.getElementById("timer-seconds").value || 0;
+      timerRemaining = (h*3600 + m*60 + s) * 1000;
+      clearInterval(timerInterval);
+      timerInterval = setInterval(() => {
+        if (timerRemaining <= 0) {
+          clearInterval(timerInterval);
+          alert("Timer finished!");
+        } else {
+          timerRemaining -= 1000;
+          const hrs = Math.floor(timerRemaining/3600000);
+          const mins = Math.floor((timerRemaining%3600000)/60000);
+          const secs = Math.floor((timerRemaining%60000)/1000);
+          timerDisplay.textContent =
+            `${hrs.toString().padStart(2,"0")}:${mins.toString().padStart(2,"0")}:${secs.toString().padStart(2,"0")}`;
+        }
+      }, 1000);
+    };
+    document.getElementById("timer-pause").onclick = () => clearInterval(timerInterval);
+    document.getElementById("timer-reset").onclick = () => {
+      clearInterval(timerInterval);
+      timerRemaining = 0;
+      timerDisplay.textContent = "00:00:00";
+      document.getElementById("timer-hours").value = "";
+      document.getElementById("timer-minutes").value = "";
+      document.getElementById("timer-seconds").value = "";
+    };
+
+    // Alarm
+    let alarmTime;
+    document.getElementById("alarm-set").onclick = () => {
+      alarmTime = document.getElementById("alarm-time").value;
+      document.getElementById("alarm-status").textContent = "Alarm set for " + alarmTime;
+      const checkAlarm = setInterval(() => {
+        const now = new Date().toLocaleTimeString('en-US', {hour12: false}).substr(0,5);
+        if (now === alarmTime) {
+          alert("Alarm!");
+          clearInterval(checkAlarm);
+        }
+      }, 1000);
+    };
+    document.getElementById("alarm-clear").onclick = () => {
+      document.getElementById("alarm-status").textContent = "";
+    };
+
+    // World Clock
+    function updateWorldClock() {
+      const timezone = document.getElementById("world-city").value;
+      const now = new Date();
+      const worldTime = new Date(now.toLocaleString('en-US', {timeZone: timezone}));
+      document.getElementById("world-clock").textContent = worldTime.toLocaleTimeString();
+      document.getElementById("world-date").textContent = worldTime.toDateString();
+    }
+    document.getElementById("world-city").addEventListener("change", updateWorldClock);
+    updateWorldClock();
+    setInterval(updateWorldClock, 1000);
+  </script>
+</body>
+</html>
